@@ -20,6 +20,7 @@ Install required collections by `ansible-galaxy collection install -vv -r meta/c
 ## Prerequisites
 <!-- BEGIN Prerequisites -->
 Managed nodes:
+
 - Directory with SAP Installation media is present and `sap_install_media_detect_source_directory` updated. Download can be completed using [community.sap_launchpad](https://github.com/sap-linuxlab/community.sap_launchpad).
 - Ensure that servers are configured for SAP HANA. See [Recommended](#recommended) section.
 - Ensure that volumes and filesystems are configured correctly. See [Recommended](#recommended) section.
@@ -31,6 +32,7 @@ Managed nodes:
 ### Prepare SAP HANA installation media
 Place the following files in directory /software/hana or in any other directory specified by variable
 `sap_hana_install_software_directory`:
+
 1. The SAPCAR executable for the correct hardware architecture
 2. The SAP HANA Installation .SAR file
     - SAP HANA 2.0 Server - `IMDB_SERVER*.SAR` file
@@ -52,23 +54,23 @@ Example of `sap_hana_install_software_directory` content for SAP HANA installati
 ```
 
 **Considerations:**
-- If more than one SAPCAR EXE file is present in the software directory, the role will select the latest version
-  for the current hardware architecture. Alternatively, the file name of the SAPCAR EXE file can also be set with
-  variable `sap_hana_install_sapcar_filename`. Example:
-  ```
-  sap_hana_install_sapcar_filename: SAPCAR_1115-70006178.EXE
-  ```
+
+- If more than one SAPCAR EXE file is present in the software directory, the role will select the latest version for the current hardware architecture.<br>
+  Alternatively, the file name of the SAPCAR EXE file can also be set with variable `sap_hana_install_sapcar_filename`.<br>
+  Example:<br>
+```yaml
+sap_hana_install_sapcar_filename: SAPCAR_1115-70006178.EXE
+```
 - If more than one SAR file for a certain software product is present in the software directory, the automatic
   handling of such SAR files will fail after extraction, when moving the newly created product directories
-  (like `SAP_HOST_AGENT`) to already existing destinations.
-  For avoiding such situations, use following variable to provide a list of SAR files to extract: `sap_hana_install_sarfiles`.
-
-  Example:
-  ```
-  sap_hana_install_sarfiles:
-    - SAPHOSTAGENT54_54-80004822.SAR
-    - IMDB_SERVER20_060_0-80002031.SAR
-  ```
+  (like `SAP_HOST_AGENT`) to already existing destinations.<br>
+  For avoiding such situations, use following variable to provide a list of SAR files to extract: `sap_hana_install_sarfiles`.<br>
+  Example:<br>
+```yaml
+sap_hana_install_sarfiles:
+  - SAPHOSTAGENT54_54-80004822.SAR
+  - IMDB_SERVER20_060_0-80002031.SAR
+```
 
 - If there is a file named `<filename>.sha256` in the software download directory
   `sap_hana_install_software_directory` which contains the checksum and the file name similar to the output
@@ -97,6 +99,7 @@ these cleanup actions are false.
 
 
 - Example of directory `sap_hana_install_software_extract_directory` containing extracted SAP HANA software installation files
+
 ```console
 [root@hanahost extracted]# ll -lrt
 drwxr-xr-x 4 root root 4096 Sep 30 04:55 SAP_HANA_AFL
@@ -147,6 +150,7 @@ of this file will not be reflected.
 ## Execution
 <!-- BEGIN Execution -->
 This Ansible Role can be executed in following scenarios:
+
 1. Install new SAP HANA System on one host.
     - `sap_hana_install_new_system` is `true`.
     - `sap_hana_install_addhosts` is not defined or empty String.
@@ -172,6 +176,7 @@ This Ansible Role can be executed in following scenarios:
 <!-- BEGIN Execution Recommended -->
 ### Recommended
 It is recommended to execute this role together with other roles in this collection, in the following order:</br>
+
 1. [sap_general_preconfigure](https://github.com/sap-linuxlab/community.sap_install/tree/main/roles/sap_general_preconfigure)
 2. [sap_hana_preconfigure](https://github.com/sap-linuxlab/community.sap_install/tree/main/roles/sap_hana_preconfigure)
 3. [sap_install_media_detect](https://github.com/sap-linuxlab/community.sap_install/tree/main/roles/sap_install_media_detect)
@@ -192,6 +197,7 @@ It is recommended to execute this role together with other roles in this collect
 
 #### Check existing installation
 This part is performed when:
+
 - Always, unless `sap_hana_install_force` is set to `true`.
 
 - If the file `/usr/sap/hostctrl/exe/saphostctrl` is present, get a list of instances with `saphostctrl -function ListInstances`:
@@ -210,11 +216,13 @@ This part is performed when:
 
 #### Check Addhosts
 This part is performed when:
+
 - The variable `sap_hana_install_addhosts` is defined and not empty String.
 
 **Addhosts are relevant to both Installation and Addhosts operations, because we need to delegate Pre-Tasks and Post-Tasks to them.**
 
 Steps:
+
 1. If the variable `sap_hana_install_addhosts` does not contain hosts, abort the role with failure.
     - This list of the `all hosts` is used for all Post-Tasks steps for idempotency.
 2. Gather list of all Instance profiles in `/hana/shared/<SID>/profile/`.
@@ -225,10 +233,12 @@ Steps:
 
 #### Pre-Tasks for Installation
 This part is performed when:
+
 - The variable `sap_hana_install_new_system` is set to `true`.
 - Existing SAP HANA was not detected.
 
 Steps:
+
 1. If the variable `sap_hana_install_configure_fapolicyd` is set to `true` and operating system is `RedHat`, install and disable `fapolicyd` on all new hosts.
 2. Configure permissions for the SAP HANA directories on all new hosts.
 3. If the variable `sap_hana_install_configure_selinux` is set to `true`, configure `SELinux` on all new hosts.
@@ -243,11 +253,13 @@ Steps:
 
 #### Pre-Tasks for Addhosts
 This part is performed when:
+
 - The variable `sap_hana_install_new_system` is set to `false`.
 - Existing SAP HANA was detected.
 - New hosts identified in the variable `sap_hana_install_addhosts`.
 
 Steps:
+
 1. Gather details of user `<sid>adm` and group `sapsys` on managed node.
     - If the user or group is not present, abort the role with failure.
     - Generate password hash for `sapadm` user using the value of `sap_hana_install_sapadm_password` variable.
@@ -262,35 +274,41 @@ Steps:
 
 #### Installation
 This part is performed when:
+
 - The variable `sap_hana_install_new_system` is set to `true`.
 - Existing SAP HANA was not detected.
 
 Steps:
+
 1. Execute the `hdblcm` executable in the directory `sap_hana_install_software_directory` using the configfile prepared in pre-tasks.
 
 
 #### Addhosts
 This part is performed when:
+
 - The variable `sap_hana_install_new_system` is set to `false`.
 - Existing SAP HANA was detected.
 - New hosts identified in the variable `sap_hana_install_addhosts`.
 
 Steps:
+
 1. Prepare new addhosts string only with new hosts and update `configfile.cfg`.
 2. Execute the `hdblcm` executable in the directory `/hana/shared/<SID>/hdblcm/` using the configfile prepared in pre-tasks.
 
 
 #### Post-Tasks for Installation
 This part is performed when:
+
 - The variable `sap_hana_install_new_system` is set to `true`.
 
 Steps:
+
 1. Update Secure User Store configuration (`hdbuserstore`) for `<sid>adm` user, for new installations.
 2. Set Log Mode key to overwrite value and apply to system, for new installations.
 3. Apply SAP HANA license if the variable `sap_hana_install_apply_license` is set to `true`, for new installations.
 4. Recreate the initial tenant database if the variable `sap_hana_install_recreate_tenant_database` is set to `true`, for new installations.
 5. Set expiration of unix users to `never` if the variable `sap_hana_install_set_sidadm_noexpire` is set to `true`, for new installations.
-6. Apply firewall rules if the variable `sap_hana_install_update_firewall` is set to `true`.
+6. Apply firewall rules if the variable `sap_hana_install_configure_firewall` is set to `true`.
 7. Apply SELinux policies if the variable `sap_hana_install_configure_selinux` is set to `true`.
 8. (Red Hat specific) Configure `fapolicyd` if the variable `sap_hana_install_configure_fapolicyd` is set to `true`.
 Additionally, if `sap_hana_install_enable_fapolicyd` is set to `true`, also enable and start the `fapolicyd` service.
@@ -299,12 +317,14 @@ Additionally, if `sap_hana_install_enable_fapolicyd` is set to `true`, also enab
 
 #### Post-Tasks for Addhosts
 This part is performed when:
+
 - The variable `sap_hana_install_new_system` is set to `false`.
 
 Steps:
+
 1. Update Secure User Store configuration (`hdbuserstore`) for `<sid>adm` user, for new hosts.
 5. Set expiration of unix users to `never` if the variable `sap_hana_install_set_sidadm_noexpire` is set to `true`, for new hosts.
-6. Apply firewall rules if the variable `sap_hana_install_update_firewall` is set to `true`.
+6. Apply firewall rules if the variable `sap_hana_install_configure_firewall` is set to `true`.
 7. Apply SELinux policies if the variable `sap_hana_install_configure_selinux` is set to `true`.
 8. (Red Hat specific) Configure `fapolicyd` if the variable `sap_hana_install_configure_fapolicyd` is set to `true`.
 Additionally, if `sap_hana_install_enable_fapolicyd` is set to `true`, also enable and start the `fapolicyd` service.
@@ -380,6 +400,7 @@ Installs SAP HANA on `host1` and `host2`, while running on host `host0` where ex
 Note: When using tags, only one tag at a time is possible.
 
 With the following tags, the role can be called to perform certain activities only:
+
 - tag `sap_hana_install_hdblcm_commandline`: Only show the hdblcm command line, without processing
   the hdblcm template. This can be useful for checking the hdblcm command line options, especially
   when using the `addhosts` function.
@@ -388,6 +409,7 @@ With the following tags, the role can be called to perform certain activities on
   desired SID and instance number.
 
 The following tags have been removed in this release:
+
 - tag `sap_hana_install_preinstall`
 - tag `sap_hana_install_chown_hana_directories`
 - tag `sap_hana_install_prepare_sapcar`
@@ -400,26 +422,22 @@ The following tags have been removed in this release:
 - tag `sap_hana_install_set_log_mode`
 - tag `sap_hana_install_check_installation`
 
-<details>
-  <summary><b>How to run sap_hana_install with tags</b></summary>
+#### How to run sap_hana_install with tags
 
-  #### Display SAP HANA hdblcm command line without performing an installation:
-  ```
-  ansible-playbook sap-hana-install.yml --tags=sap_hana_install_hdblcm_commandline
-  ```
+Display SAP HANA hdblcm command line without performing an installation:
+```
+ansible-playbook sap-hana-install.yml --tags=sap_hana_install_hdblcm_commandline
+```
 
-  #### Only create the hdblcm configfile:
-  ```console
-  ansible-playbook sap-hana-install.yml --tags=sap_hana_install_create_configfile
-  ```
+Only create the hdblcm configfile:
+```console
+ansible-playbook sap-hana-install.yml --tags=sap_hana_install_create_configfile
+```
 
-  #### Perform a SAP HANA existence check:
-  ```console
-  ansible-playbook sap-hana-install.yml --tags=sap_hana_install_check_hana_exists
-  ```
-</details>
-
-
+Perform a SAP HANA existence check:
+```console
+ansible-playbook sap-hana-install.yml --tags=sap_hana_install_check_hana_exists
+```
 <!-- END Role Tags -->
 
 <!-- BEGIN Further Information -->
@@ -509,15 +527,19 @@ Default is `True`, in which case fresh SAP HANA installation will be performed.
 If the following variable is specified, the role will perform a scaleout installation or it will add additional hosts to an existing SAP HANA system.</br>
 Example: `sap_hana_install_addhosts: 'host2:role=worker,host3:role=worker:group=g02,host4:role=standby:group=g02',host5`.
 
-### sap_hana_install_update_firewall
+### sap_hana_install_configure_firewall
 
 - _Type:_ `bool`
 - _Default:_ `False`
 
-The role can be configured to also set the required firewall ports for SAP HANA. If this is desired, set the variable `sap_hana_install_update_firewall` to `true` (default is `false`).</br>
-The firewall ports are defined in a variable which is compatible with the variable structure used by Linux System Role `firewall`.</br>
-The firewall ports for SAP HANA are defined in member `port` of the first field of variable `sap_hana_install_firewall` (`sap_hana_install_firewall[0].port`), see file `defaults/main.yml`.</br>
-If the member `state` is set to `enabled`, the ports will be enabled. If the member `state` is set to `disabled`, the ports will be disabled, which might be useful for testing.</br>
+Set this variable to `true` to configure the required firewall ports for SAP HANA (default is `false`).</br>
+This configuration includes installing the `firewalld` package and starting the service.<br>
+Configuration can be customized by variable `sap_hana_install_firewall_ports`:<br>
+- If not defined, a Firewalld service definition is created with the recommended ports.<br>
+- If defined, the specified ports are opened directly and no service definition is created.<br>
+Note: Setting this variable to `false` does not remove any existing firewall configuration.<br>
+For ongoing firewall management after installation, consider using the `community.sap_operations.sap_firewall` role or the `firewall` Linux System Role.</br>
+
 
 Certain parameters have identical meanings, for supporting different naming schemes in playbooks and inventories.</br>
 You can find those in the task `Rename some variables used by hdblcm configfile` of the file `tasks/main.yml`.</br>

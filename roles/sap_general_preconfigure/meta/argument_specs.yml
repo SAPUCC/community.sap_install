@@ -245,16 +245,29 @@ argument_specs:
         required: false
         type: bool
 
-      sap_general_preconfigure_selinux_state:
+      sap_general_preconfigure_selinux_mode:
         default: 'permissive'
         description:
-          - One of the SELinux states to be set on the system.
+          - One of the three SELinux modes to be set on the system.
+          - "Note: A transition from `disabled` to `enforcing` is not supported, see the `Using SELinux` RHEL product documentation"
+          - and Red Hat Bug 2021835.
         choices:
           - 'enforcing'
           - 'permissive'
           - 'disabled'
         required: false
         type: str
+
+      sap_general_preconfigure_fail_if_selinux_mode_lowered:
+        default: true
+        description:
+          - If the system is running with a higher SELinux mode than demanded by the
+          - variable `sap_general_preconfigure_selinux_mode`, we let the role fail in order to avoid an
+          - unintentional configuration change to a lower SELinux security level.
+          - Set this variable to `false` if you want the role to change the SELinux mode from `enforcing`
+          - to `permissive` or `disabled`, or from `permissive` to `disabled`.
+        required: false
+        type: bool
 
       sap_general_preconfigure_create_directories:
         default: true
@@ -283,7 +296,7 @@ argument_specs:
         type: bool
 
       sap_general_preconfigure_size_of_tmpfs_gb:
-        default: "{{ ((0.75 * (ansible_memtotal_mb + ansible_swaptotal_mb)) / 1024) | round | int }}"
+        default: "{{ ((0.75 * (ansible_facts['memtotal_mb'] + ansible_facts['swaptotal_mb'])) / 1024) | round | int }}"
         description:
           - The size of the tmpfs in GB. The formula used here is mentioned in SAP note 941735.
         required: false
@@ -327,14 +340,14 @@ argument_specs:
         type: str
 
       sap_general_preconfigure_hostname:
-        default: "{{ ansible_hostname }}"
+        default: "{{ ansible_facts['hostname'] }}"
         description:
           - The hostname to be used for updating or checking `/etc/hosts` entries.
         required: false
         type: str
 
       sap_general_preconfigure_domain:
-        default: "{{ ansible_domain }}"
+        default: "{{ ansible_facts['domain'] }}"
         description:
           - The DNS domain name to be used for updating or checking `/etc/hosts` entries.
           - Mandatory parameter when `sap_general_preconfigure_modify_etc_hosts` is set to true.
@@ -342,7 +355,7 @@ argument_specs:
         type: str
 
       sap_general_preconfigure_ip:
-        default: "{{ ansible_default_ipv4.address }}"
+        default: "{{ ansible_facts['default_ipv4'].address }}"
         description:
           - The IPV4 address to be used for updating or checking `/etc/hosts` entries.
         required: false
